@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atelier Wildcard — Arte Generativa per ComfyUI</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎭%3C/text%3E%3C/svg%3E">
+<style>
+@import url('data:text/css,');
+*{box-sizing:border-box}
+:root{
+  --oro:#f5c518; --fuxia:#ff2fb3; --ciano:#00f0ff; --viola:#7c5cff;
+  --nero:#0a0a10; --carta:#f4efe6;
+}
+html,body{margin:0;padding:0}
+body{
+  font-family:Georgia,'Times New Roman',serif;
+  background:var(--nero); color:var(--carta);
+  max-width:720px;margin:auto;padding:18px 16px 60px;
+  min-height:100vh; position:relative; overflow-x:hidden;
+}
+#tela{position:fixed;inset:0;z-index:-2;opacity:.9}
+.velo{position:fixed;inset:0;z-index:-1;
+  background:
+    radial-gradient(600px 400px at 10% 0%, rgba(255,47,179,.22), transparent 60%),
+    radial-gradient(700px 500px at 90% 20%, rgba(0,240,255,.16), transparent 60%),
+    radial-gradient(800px 600px at 50% 100%, rgba(124,92,255,.22), transparent 60%),
+    linear-gradient(rgba(10,10,16,.72),rgba(10,10,16,.88));
+}
+.grana{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");}
+/* marquee */
+.fascia{overflow:hidden;white-space:nowrap;border-top:1px solid var(--oro);border-bottom:1px solid var(--oro);
+  font-family:Arial,sans-serif;font-size:11px;letter-spacing:.35em;text-transform:uppercase;color:var(--oro);
+  padding:8px 0;margin-bottom:18px}
+.fascia span{display:inline-block;animation:scorri 18s linear infinite;padding-right:40px}
+@keyframes scorri{to{transform:translateX(-50%)}}
+header{text-align:center;margin:10px 0 22px}
+.occhiello{font-family:Arial,sans-serif;font-size:11px;letter-spacing:.4em;color:var(--ciano);text-transform:uppercase}
+h1.titolo{font-size:clamp(38px,7vw,62px);line-height:.95;margin:10px 0;font-style:italic;font-weight:900;
+  background:linear-gradient(100deg,var(--carta) 10%,var(--oro) 35%,var(--fuxia) 60%,var(--ciano) 90%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px rgba(255,47,179,.35));}
+.sottotitolo{font-style:italic;color:#cbbfa8;font-size:15px}
+.sottotitolo b{color:var(--oro)}
+.cornice{font-family:Arial,sans-serif;font-size:11px;letter-spacing:.2em;color:#8a8578;margin-top:10px;text-transform:uppercase}
+/* atti */
+.step{
+  background:rgba(20,18,28,.82);backdrop-filter:blur(10px);
+  border:1px solid rgba(245,197,24,.4);border-radius:4px 22px 4px 22px;
+  padding:20px 18px;margin-bottom:22px;position:relative;
+  box-shadow:0 0 0 1px rgba(0,0,0,.6), 0 20px 60px rgba(0,0,0,.5), 0 0 40px rgba(124,92,255,.12);
+}
+.step:nth-child(odd){transform:rotate(-.4deg)}
+.step:nth-child(even){transform:rotate(.4deg)}
+.step::before{content:"";position:absolute;top:10px;left:10px;right:10px;bottom:10px;
+  border:1px dashed rgba(245,197,24,.25);border-radius:2px 16px 2px 16px;pointer-events:none}
+.numero-atto{position:absolute;top:-14px;left:18px;background:var(--nero);border:1px solid var(--oro);
+  color:var(--oro);font-family:Arial,sans-serif;font-size:11px;letter-spacing:.25em;padding:5px 12px;border-radius:20px;text-transform:uppercase}
+.step h2{margin:14px 0 4px;font-size:26px;font-style:italic}
+.step p{margin:6px 0;color:#bdb49e;font-size:14px;font-family:Georgia,serif}
+.step p b{color:var(--carta)}
+input,select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid #4a4436;
+  background:#0d0d14;color:var(--carta);font-size:16px;margin-top:8px;font-family:Georgia,serif}
+input:focus,select:focus{outline:none;border-color:var(--oro);box-shadow:0 0 0 2px rgba(245,197,24,.25),0 0 24px rgba(245,197,24,.2)}
+select{font-family:Arial,sans-serif;font-size:13px}
+.ai{background:linear-gradient(180deg,rgba(255,47,179,.1),rgba(0,240,255,.07));
+  border:1px solid transparent;border-radius:14px;padding:14px;margin-top:12px;
+  background-clip:padding-box;position:relative}
+.ai::after{content:"";position:absolute;inset:-1px;border-radius:14px;padding:1px;pointer-events:none;
+  background:linear-gradient(120deg,var(--fuxia),var(--oro),var(--ciano));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude}
+.ai h3{margin:0;font-size:17px;font-style:italic}
+.ai h3 em{color:var(--fuxia)}
+#statoAI{font-size:13px;color:#bdb49e;margin-top:10px;min-height:18px;font-family:Arial,sans-serif;font-style:italic}
+.use{background:#0d0d14;border:1px solid rgba(0,240,255,.4);border-radius:12px;padding:12px;margin-top:12px;
+  font-size:15px;text-align:center;font-family:Arial,sans-serif}
+.use b{color:var(--ciano);font-size:22px;font-family:Georgia,serif;font-style:italic;text-shadow:0 0 18px rgba(0,240,255,.6)}
+.riga{display:flex;gap:8px;margin-top:8px}
+.riga input{margin:0;border-left:4px solid var(--fuxia)}
+.riga:nth-child(even) input{border-left-color:var(--ciano)}
+.riga:nth-child(3n) input{border-left-color:var(--oro)}
+.riga button{width:48px;flex-shrink:0;background:transparent;color:#ff8080;border:1px solid #5c2b2b;border-radius:12px;font-size:20px;cursor:pointer;transition:.2s}
+.riga button:hover{background:#ff2f2f;color:white;transform:rotate(90deg)}
+.btn{width:100%;padding:15px;border-radius:14px;border:0;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px;
+  font-family:Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;transition:.25s}
+.btn:hover{transform:translateY(-2px)}
+.add{background:#232030;color:var(--carta);border:1px solid #4a4436}
+.btn-ai{background:linear-gradient(90deg,var(--fuxia),var(--viola),var(--ciano));color:white;
+  box-shadow:0 6px 30px rgba(255,47,179,.4);font-size:16px}
+.btn-ai:disabled{opacity:.6}
+.btn-stop{background:#3a1420;color:#ff8080;border:1px solid #5c2b2b}
+.btn-del{background:transparent;color:#ff9a9a;border:1px dashed #7a3535}
+.mini{font-size:12px;background:transparent;border:0;color:#8a8578;cursor:pointer;text-decoration:underline;padding:6px;font-family:Arial,sans-serif}
+.test{background:transparent;color:var(--oro);border:1px solid var(--oro)}
+.dl{background:linear-gradient(90deg,var(--oro),#ff8a00);color:#1a1000;font-size:18px;box-shadow:0 6px 30px rgba(245,197,24,.35)}
+.result{background:#0d0d14;border-left:3px solid var(--oro);border-radius:4px 12px 12px 4px;
+  padding:16px;margin-top:12px;font-size:19px;font-style:italic;min-height:56px;text-align:center}
+.small{font-size:13px;color:#8a8578;text-align:center;margin-top:16px;line-height:1.6;font-family:Arial,sans-serif}
+details{border:1px solid #33302a;border-radius:10px;padding:10px;margin-top:10px}
+.piede{text-align:center;margin-top:26px;color:#5c574a;font-size:12px;font-style:italic}
+.piede b{color:var(--oro)}
+.firma{font-size:44px;text-align:center;margin:6px 0;filter:drop-shadow(0 0 12px rgba(255,47,179,.6))}
+.langbar{display:flex;gap:8px;justify-content:center;margin:0 0 14px;flex-wrap:wrap}
+.langbar button{background:rgba(20,18,28,.85);border:1px solid #4a4436;color:var(--carta);border-radius:20px;padding:7px 13px;font-size:13px;cursor:pointer;font-family:Arial,sans-serif;transition:.2s}
+.langbar button.on{border-color:var(--oro);box-shadow:0 0 14px rgba(245,197,24,.45)}
+</style>
+</head>
+<body>
+<canvas id="tela"></canvas>
+<div class="velo"></div>
+<div class="grana"></div>
+
+<div class="fascia"><span class="fasciaTxt">ATELIER DEL PROMPT — WILDCARD — COMFYUI × IMPACT PACK — OLLAMA — ARTE GENERATIVA —&nbsp;</span><span class="fasciaTxt">ATELIER DEL PROMPT — WILDCARD — COMFYUI × IMPACT PACK — OLLAMA — ARTE GENERATIVA —&nbsp;</span></div>
+
+<div class="langbar" id="langbar">
+<button data-lang="it" onclick="setLang('it')">🇮🇹 Italiano</button>
+<button data-lang="en" onclick="setLang('en')">🇬🇧 English</button>
+<button data-lang="es" onclick="setLang('es')">🇪🇸 Español</button>
+<button data-lang="zh" onclick="setLang('zh')">🇨🇳 中文</button>
+<button data-lang="hi" onclick="setLang('hi')">🇮🇳 हिन्दी</button>
+</div>
+
+<header>
+<div class="occhiello" data-i18n="occhiello">Opus · N° 1 — Arte allo stato puro</div>
+<h1 class="titolo" data-i18n-html="titolo">Fabbrica<br>di Meraviglie</h1>
+<div class="sottotitolo" data-i18n-html="sottotitolo">Scrivi un <b>titolo</b>, l'AI sogna la lista, ComfyUI la mette in scena.</div>
+<div class="cornice" data-i18n="cornice">tre atti · niente complicazioni · solo poesia + file .txt</div>
+</header>
+
+<div class="step">
+<div class="numero-atto" data-i18n="atto1tag">Atto I — Il Nome</div>
+<h2 data-i18n="atto1h">Battezza l'opera</h2>
+<p data-i18n-html="atto1p">Esempio: scrivi <i>fiori</i>, in ComfyUI evocherai <i>__fiori__</i></p>
+<input id="nome" value="fiori" oninput="aggiorna()">
+<div class="use"><span data-i18n="usoLabel">sulla tela scriverai:</span> <b id="uso">__fiori__</b></div>
+</div>
+
+<div class="step">
+<div class="numero-atto" data-i18n="atto2tag">Atto II — La Materia</div>
+<h2 data-i18n="atto2h">Dal titolo alla lista</h2>
+<p data-i18n-html="atto2p">Scrivi il <b>titolo</b>, premi genera e l'AI riempie la tela. Oppure scrivi a mano, come un pittore.</p>
+<div class="ai">
+<h3 data-i18n-html="aiTitle">✨ Oracolo <em>Ollama</em></h3>
+<p data-i18n="temaLabel">Titolo / tema dell'opera:</p>
+<input id="tema" value="fiori fotorealistici" placeholder="es. mostri fantasy, sfondi cyberpunk..." data-i18n-ph="temaPh">
+<div style="display:flex;gap:8px">
+<select id="modello" style="flex:2"><option value="">carico modelli...</option></select>
+<select id="quante" style="flex:1">
+<option value="10">10 visioni</option>
+<option value="15" selected>15 visioni</option>
+<option value="25">25 visioni</option>
+<option value="40">40 visioni</option>
+</select>
+</div>
+<button class="btn btn-ai" id="btnAI" onclick="generaAI()" data-i18n="btnAI">✨ Genera visioni</button>
+<div style="display:flex;gap:8px">
+<button class="btn btn-stop" id="btnStop" onclick="stopAI()" style="flex:1;display:none" data-i18n="btnStop">⏹ Stop</button>
+<button class="btn btn-del" onclick="scaricaModello()" id="btnScaricaMod" style="flex:1" data-i18n="btnScaricaMod">🧠 Libera la mente (VRAM)</button>
+</div>
+<div style="display:flex;gap:8px;margin-top:8px">
+<button class="mini" onclick="scollegaOllama()" id="btnScollega" data-i18n="btnScollega">🔌 Scollega oracolo</button>
+<button class="mini" id="btnRicollega" onclick="ricollegaOllama()" style="display:none" data-i18n="btnRicollega">↩ Ricollega oracolo</button>
+</div>
+<div id="statoAI">L'oracolo si sveglia...</div>
+</div>
+<div id="lista" style="margin-top:10px"></div>
+<button class="btn add" onclick="aggiungiRiga('')" data-i18n="addRow">+ Un verso in più</button>
+<div style="display:flex;gap:8px">
+<button class="btn add" onclick="caricaEsempio()" style="flex:1" data-i18n="btnEsempio">↩ Esempio</button>
+<button class="btn btn-del" onclick="cancellaTutto()" style="flex:1" data-i18n="btnCancella">🗑 Distruggi tutto</button>
+</div>
+</div>
+
+<div class="step">
+<div class="numero-atto" data-i18n="atto3tag">Atto III — L'Esposizione</div>
+<h2 data-i18n="atto3h">Assaggia e consegna</h2>
+<button class="btn test" onclick="prova()" data-i18n="btnProva">🎲 Estrai un destino</button>
+<div class="result" id="risultato">La tela attende 👆</div>
+<button class="btn dl" onclick="salvaInCartella()" data-i18n="btnSalva">💾 Salva nella cartella di export</button>
+<button class="btn add" onclick="scarica()" data-i18n="btnScaricaFb">⬇ Scarica .txt (se il browser non permette cartelle)</button>
+<button class="mini" onclick="scegliCartella()" data-i18n="btnScegli">📁 Scegli / cambia cartella di export</button>
+<div id="cartellaStato" style="font-family:Arial,sans-serif;font-size:12px;color:#bdb49e;margin-top:8px;font-style:italic">Cartella: non ancora scelta — ti verrà chiesta al salvataggio.</div>
+<p id="exportHint" data-i18n-html="exportHintDefault">Appendi il file qui:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>poi riavvia ComfyUI e lascia fiorire.</p>
+</div>
+
+<div class="firma">🎭</div>
+<div class="small">
+<span data-i18n="smallHave">Hai già un'opera?</span> <input type="file" id="imp" accept=".txt" style="margin-top:6px"><br><br>
+<details><summary data-i18n="detailsSum">Ho molte opere da creare?</summary>
+<span data-i18n="detailsP">Una alla volta, come i quadri: completa, scarica, cambia nome all'Atto I e ricomincia. L'arte non ha fretta.</span>
+</details>
+</div>
+<div class="piede" data-i18n-html="piede">dipinto con <b>Ollama</b> · esposto con <b>ComfyUI</b> · firmato <b>Atelier Wildcard</b></div>
+
+<script>
+let righe = ["rosa rossa", "tulipano giallo", "orchidea bianca", "girasole"];
+function pulisciNome(s){return s.toLowerCase().trim().replace(/\\/g,"/").replace(/\s+/g,"-").replace(/\.txt$/,"")||"wildcard";}
+function aggiorna(){
+  document.getElementById("uso").textContent = "__"+pulisciNome(document.getElementById("nome").value)+"__";
+  salva();
+}
+function disegna(){
+  const box = document.getElementById("lista"); box.innerHTML="";
+  righe.forEach((v,i)=>{
+    const d=document.createElement("div"); d.className="riga";
+    const inp=document.createElement("input"); inp.value=v; inp.placeholder=T("rowPh");
+    inp.oninput=e=>{righe[i]=e.target.value; salva();};
+    const del=document.createElement("button"); del.textContent="×"; del.title="togli";
+    del.onclick=()=>{righe.splice(i,1); if(righe.length===0) righe=[""]; disegna(); salva();};
+    d.appendChild(inp); d.appendChild(del); box.appendChild(d);
+  });
+}
+function aggiungiRiga(v){righe.push(v||""); disegna(); salva();
+  const inputs=document.querySelectorAll("#lista input"); inputs[inputs.length-1].focus();}
+function caricaEsempio(){righe=T("exRows").slice();document.getElementById("nome").value=T("nomeEx");const te=document.getElementById("tema");te.value=T("temaEx");delete te.dataset.toccato;disegna();aggiorna();}
+function svuota(){cancellaTutto();}
+function cancellaTutto(){
+  if(!confirm(T("confirmCancella"))) return;
+  righe=[""];
+  document.getElementById("nome").value=T("nomeEx");
+  const t=document.getElementById("tema"); t.value=T("temaEx"); delete t.dataset.toccato;
+  disegna(); aggiorna();
+  document.getElementById("risultato").textContent=T("telaBianca");
+}
+function cancellaSalvato(){
+  if(!confirm("Cancellare anche il salvato automatico?")) return;
+  localStorage.removeItem("wildcard-simple"); righe=[""]; document.getElementById("nome").value=""; document.getElementById("tema").value="";
+  disegna(); aggiorna();
+}
+function prova(){
+  const piene=righe.map(s=>s.trim()).filter(s=>s && !s.startsWith("#"));
+  if(!piene.length){document.getElementById("risultato").textContent=T("provaVuota"); return;}
+  document.getElementById("risultato").textContent='\u201C'+piene[Math.floor(Math.random()*piene.length)]+'\u201D';
+}
+// --- Ollama ---
+const OLLAMA_URL="http://localhost:11434";
+let aiController=null, ollamaCollegato=true;
+async function caricaModelli(){
+  const sel=document.getElementById("modello"), stato=document.getElementById("statoAI");
+  try{
+    const r=await fetch(OLLAMA_URL+"/api/tags");
+    const d=await r.json();
+    const nomi=(d.models||[]).map(m=>m.name);
+    if(!nomi.length){stato.textContent=T("stNoModel"); sel.innerHTML='<option value="">'+T("stNoModelOpt")+'</option>'; return;}
+    sel.textContent="";
+    nomi.forEach(n=>{const o=document.createElement("option"); o.value=n; o.textContent=n; sel.appendChild(o);});
+    const pref=["qwen3.5:9b","qwen3:14b","granite4.2:8b","gpt-oss:20b"];
+    for(const p of pref){if(nomi.includes(p)){sel.value=p; break;}}
+    stato.textContent=F(T("stConnected"),nomi.length);
+  }catch(e){sel.innerHTML='<option value="qwen3.5:9b">qwen3.5:9b</option>'; stato.innerHTML=T("stNoCors");}
+}
+function stopAI(){
+  if(aiController){aiController.abort(); aiController=null;}
+  document.getElementById("btnAI").disabled=false;
+  document.getElementById("btnAI").textContent=T("btnAI");
+  document.getElementById("btnStop").style.display="none";
+  document.getElementById("statoAI").textContent=T("stStopped");
+}
+function scollegaOllama(){
+  stopAI();
+  ollamaCollegato=false;
+  document.getElementById("modello").disabled=true;
+  document.getElementById("tema").disabled=true;
+  document.getElementById("btnAI").disabled=true;
+  document.getElementById("btnScaricaMod").disabled=true;
+  document.getElementById("btnScollega").style.display="none";
+  document.getElementById("btnRicollega").style.display="inline";
+  document.getElementById("statoAI").textContent=T("stUiOff");
+}
+async function scaricaModello(){
+  const modello=document.getElementById("modello").value;
+  const stato=document.getElementById("statoAI");
+  if(!modello){stato.textContent=T("stUnloadNone"); return;}
+  stopAI();
+  stato.textContent=F(T("stUnloading"),modello);
+  try{
+    await fetch(OLLAMA_URL+"/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:modello,keep_alive:0})});
+    stato.textContent=T("stUnloaded");
+  }catch(e){stato.textContent=T("stUnloadErr")+e;}
+}
+function ricollegaOllama(){
+  ollamaCollegato=true;
+  document.getElementById("modello").disabled=false;
+  document.getElementById("tema").disabled=false;
+  document.getElementById("btnAI").disabled=false;
+  document.getElementById("btnScaricaMod").disabled=false;
+  document.getElementById("btnScollega").style.display="block";
+  document.getElementById("btnRicollega").style.display="none";
+  document.getElementById("statoAI").textContent=T("stWake");
+  caricaModelli();
+}
+async function generaAI(){
+  const tema=document.getElementById("tema").value.trim()||document.getElementById("nome").value.trim()||"fiori";
+  const modello=document.getElementById("modello").value;
+  const quante=document.getElementById("quante").value;
+  const btn=document.getElementById("btnAI"), stato=document.getElementById("statoAI");
+  if(!modello){alert(T("alertNoModel")); return;}
+  if(!ollamaCollegato){alert(T("alertOff")); return;}
+  aiController=new AbortController();
+  btn.disabled=true; btn.textContent=T("btnDreaming");
+  document.getElementById("btnStop").style.display="block";
+  stato.textContent=T("stThinking")+tema;
+  const prompt=`Generate ${quante} short Stable Diffusion prompt options about "${tema}". Rules: ONE option per line, in English, max 8 words per line, no numbering, no dashes at start, no quotes, no explanations, no empty lines. Output ONLY the list.`;
+  try{
+    const r=await fetch(OLLAMA_URL+"/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:modello,prompt:prompt,stream:false}),signal:aiController.signal});
+    const d=await r.json();
+    let linee=String(d.response||"").split(/\r?\n/).map(s=>s.trim().replace(/^[\d]+[\).\:\-\s]+/,"").replace(/^[-*•\s]+/,"").replace(/^["']|["']$/g,"").trim()).filter(s=>s && s.length<120 && !s.toLowerCase().startsWith("here"));
+    if(!linee.length){stato.textContent=T("stEmpty");}
+    else{righe=linee.slice(0,parseInt(quante,10)); disegna(); salva(); stato.textContent=F(T("stOk"),righe.length);}
+  }catch(e){
+    if(e.name==="AbortError"){stato.textContent=T("stUserStop");}
+    else stato.innerHTML=T("stGenErr")+esc(e)+T("stGenErrHint");
+  }
+  aiController=null;
+  btn.disabled=false; btn.textContent=T("btnAI");
+  document.getElementById("btnStop").style.display="none";
+}
+document.getElementById("nome").addEventListener("input",()=>{
+  const t=document.getElementById("tema");
+  if(!t.dataset.toccato) t.value=document.getElementById("nome").value;
+});
+document.getElementById("tema").addEventListener("input",e=>{e.target.dataset.toccato="1";});
+function scarica(){
+  const nome=pulisciNome(document.getElementById("nome").value);
+  const piene=righe.map(s=>s.trim()).filter(s=>s);
+  if(!piene.length){alert(T("scaricaVuota")); return;}
+  const txt=piene.join("\n")+"\n";
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([txt],{type:"text/plain"}));
+  a.download=nome.split("/").pop()+".txt"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+// --- Export su cartella a scelta (Chrome/Edge; fallback: download) ---
+let dirHandle=null;
+async function scegliCartella(){
+  const stato=document.getElementById("cartellaStato");
+  if(!window.showDirectoryPicker){stato.textContent=T("folderNoApi"); return null;}
+  try{
+    dirHandle=await window.showDirectoryPicker({mode:"readwrite"});
+    stato.textContent=F(T("folderSet"),dirHandle.name);
+    try{localStorage.setItem("wildcard-export-hint",dirHandle.name);}catch(e){}
+    return dirHandle;
+  }catch(e){stato.textContent=T("folderCancel"); return null;}
+}
+async function salvaInCartella(){
+  const nome=pulisciNome(document.getElementById("nome").value);
+  const piene=righe.map(s=>s.trim()).filter(s=>s);
+  const stato=document.getElementById("cartellaStato");
+  if(!piene.length){alert(T("scaricaVuota")); return;}
+  const txt=piene.join("\n")+"\n";
+  if(!window.showDirectoryPicker){scarica(); return;}
+  try{
+    if(!dirHandle) await scegliCartella();
+    if(!dirHandle) return;
+    // supporta sottocartelle tipo obj/person
+    const parti=nome.split("/").filter(Boolean);
+    const fileName=parti.pop()+".txt";
+    let dir=dirHandle;
+    for(const p of parti){dir=await dir.getDirectoryHandle(p,{create:true});}
+    const fh=await dir.getFileHandle(fileName,{create:true});
+    const w=await fh.createWritable();
+    await w.write(txt); await w.close();
+    stato.textContent=F(T("savedOk"),nome,dirHandle.name);
+    document.getElementById("risultato").textContent=F(T("operaConsegnata"),nome);
+  }catch(e){stato.textContent=F(T("saveErr"),e); scarica();}
+}
+// se setup.sh ha scritto atelier-config.json, mostra il percorso consigliato
+fetch("atelier-config.json").then(r=>r.json()).then(cfg=>{
+  if(cfg&&cfg.export_dir){const eh=document.getElementById("exportHint"); const parts=T("exportHintCfg").split("{d}"); eh.textContent=parts[0]||""; const b=document.createElement("b"); b.textContent=cfg.export_dir; eh.appendChild(b); eh.appendChild(document.createTextNode(parts[1]||""));}
+}).catch(()=>{});
+function salva(){try{localStorage.setItem("wildcard-simple",JSON.stringify({n:document.getElementById("nome").value,t:document.getElementById("tema").value,q:document.getElementById("quante").value,r:righe}));}catch(e){}}
+function carica(){
+  try{const d=JSON.parse(localStorage.getItem("wildcard-simple")); if(d){document.getElementById("nome").value=d.n||T("nomeEx"); if(d.t)document.getElementById("tema").value=d.t; if(d.q)document.getElementById("quante").value=d.q; righe=d.r&&d.r.length?d.r:righe;}}catch(e){}
+}
+document.getElementById("imp").addEventListener("change",e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    document.getElementById("nome").value=f.name.replace(/\.txt$/i,"");
+    righe=String(r.result).split(/\r?\n/); if(!righe.length) righe=[""];
+    disegna(); aggiorna();
+  };
+  r.readAsText(f);
+});
+// --- Lingue: it, en, es, zh, hi ---
+let lang="it";
+const LANG={
+it:{docTitle:"Atelier Wildcard — Arte Generativa per ComfyUI",fascia:"ATELIER DEL PROMPT — WILDCARD — COMFYUI × IMPACT PACK — OLLAMA — ARTE GENERATIVA — ",occhiello:"Opus · N° 1 — Arte allo stato puro",titolo:"Fabbrica<br>di Meraviglie",sottotitolo:"Scrivi un <b>titolo</b>, l'AI sogna la lista, ComfyUI la mette in scena.",cornice:"tre atti · niente complicazioni · solo poesia + file .txt",atto1tag:"Atto I — Il Nome",atto1h:"Battezza l'opera",atto1p:"Esempio: scrivi <i>fiori</i>, in ComfyUI evocherai <i>__fiori__</i>",usoLabel:"sulla tela scriverai:",atto2tag:"Atto II — La Materia",atto2h:"Dal titolo alla lista",atto2p:"Scrivi il <b>titolo</b>, premi genera e l'AI riempie la tela. Oppure scrivi a mano, come un pittore.",aiTitle:"✨ Oracolo <em>Ollama</em>",temaLabel:"Titolo / tema dell'opera:",quante:["10 visioni","15 visioni","25 visioni","40 visioni"],temaPh:"es. mostri fantasy, sfondi cyberpunk...",btnAI:"✨ Genera visioni",btnDreaming:"⏳ L'oracolo sogna...",btnStop:"⏹ Stop",btnScaricaMod:"🧠 Libera la mente (VRAM)",btnScollega:"🔌 Scollega oracolo",btnRicollega:"↩ Ricollega oracolo",addRow:"+ Un verso in più",btnEsempio:"↩ Esempio",btnCancella:"🗑 Distruggi tutto",atto3tag:"Atto III — L'Esposizione",atto3h:"Assaggia e consegna",btnProva:"🎲 Estrai un destino",risultatoInit:"La tela attende 👆",btnScarica:"⬇ Scarica l'opera .txt",btnSalva:"💾 Salva nella cartella di export",btnScaricaFb:"⬇ Scarica .txt (se il browser non permette cartelle)",btnScegli:"📁 Scegli / cambia cartella di export",cartellaInit:"Cartella: non ancora scelta — ti verrà chiesta al salvataggio.",atto3p:"Appendi il file qui:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>poi riavvia ComfyUI e lascia fiorire.",exportHintDefault:"Appendi il file qui:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>poi riavvia ComfyUI e lascia fiorire.",exportHintCfg:"Cartella consigliata dal setup:<br><b>{d}</b><br>Sceglila con 📁 oppure salva e sposta il .txt lì.",smallHave:"Hai già un'opera?",detailsSum:"Ho molte opere da creare?",detailsP:"Una alla volta, come i quadri: completa, scarica, cambia nome all'Atto I e ricomincia. L'arte non ha fretta.",piede:"dipinto con <b>Ollama</b> · esposto con <b>ComfyUI</b> · firmato <b>Atelier Wildcard</b>",rowPh:"es. rosa rossa",modelloLoading:"carico modelli...",nomeEx:"fiori",temaEx:"fiori fotorealistici",exRows:["rosa rossa","tulipano giallo","orchidea bianca","girasole"],confirmCancella:"Distruggere tutta la tela?",telaBianca:"Tela bianca. Ricomincia a sognare.",provaVuota:"⚠️ La tela è vuota, scrivi almeno un verso",scaricaVuota:"La tela è vuota!",stInit:"L'oracolo si sveglia...",stNoModel:"⚠️ L'oracolo tace: nessun modello.",stNoModelOpt:"nessun modello",stConnected:"✅ Oracolo collegato ({n} spiriti).",stNoCors:"⚠️ Non sento l'oracolo. Avvia con <b>OLLAMA_ORIGINS=*</b>. Puoi dipingere a mano.",stStopped:"⏹ Visione interrotta.",stThinking:"L'oracolo sogna sul tema: ",stEmpty:"⚠️ L'oracolo ha sognato il vuoto, riprova.",stOk:"✅ {n} visioni ricevute! Potale con × se vuoi.",stUserStop:"⏹ Sogno interrotto da te.",stGenErr:"❌ Errore: ",stGenErrHint:". Riavvia con: <b>OLLAMA_ORIGINS=* ollama serve</b>",stUnloadNone:"⚠️ Nessuno spirito da liberare.",stUnloading:"🧠 Libero {m} dalla mente... Ollama resta acceso.",stUnloaded:"✅ Mente liberata. Ollama veglia ancora ✅",stUnloadErr:"❌ Non riesco a liberare: ",stUiOff:"🔌 Oracolo scollegato. Ollama resta acceso. Dipingi a mano.",stWake:"L'oracolo si risveglia...",alertNoModel:"Nessuno spirito selezionato",alertOff:"Oracolo scollegato. Premi Ricollega.",folderSet:"📁 Cartella: {n} — i salvataggi andranno qui (sottocartelle create in automatico).",folderCancel:"Scelta annullata.",folderNoApi:"⚠️ Il tuo browser non supporta la scelta cartella: usa Scarica .txt e sposta il file a mano.",savedOk:"✅ Salvato: {n}.txt nella cartella {c}",operaConsegnata:"✅ Opera consegnata: {n}.txt",saveErr:"❌ Non riesco a salvare lì: {e} — uso il download classico."},
+en:{docTitle:"Atelier Wildcard — Generative Art for ComfyUI",fascia:"PROMPT ATELIER — WILDCARD — COMFYUI × IMPACT PACK — OLLAMA — GENERATIVE ART — ",occhiello:"Opus · No. 1 — Pure art",titolo:"Factory<br>of Wonders",sottotitolo:"Type a <b>title</b>, the AI dreams the list, ComfyUI stages it.",cornice:"three acts · no hassle · just poetry + .txt files",atto1tag:"Act I — The Name",atto1h:"Baptize the artwork",atto1p:"Example: type <i>flowers</i>, in ComfyUI you will evoke <i>__flowers__</i>",usoLabel:"on the canvas you will write:",atto2tag:"Act II — The Matter",atto2h:"From title to list",atto2p:"Type the <b>title</b>, press generate and the AI fills the canvas. Or write by hand, like a painter.",aiTitle:"✨ <em>Ollama</em> Oracle",temaLabel:"Title / theme of the artwork:",quante:["10 visions","15 visions","25 visions","40 visions"],temaPh:"e.g. fantasy monsters, cyberpunk backgrounds...",btnAI:"✨ Generate visions",btnDreaming:"⏳ The oracle dreams...",btnStop:"⏹ Stop",btnScaricaMod:"🧠 Free the mind (VRAM)",btnScollega:"🔌 Disconnect oracle",btnRicollega:"↩ Reconnect oracle",addRow:"+ One more verse",btnEsempio:"↩ Example",btnCancella:"🗑 Destroy everything",atto3tag:"Act III — The Exhibition",atto3h:"Taste and deliver",btnProva:"🎲 Draw a fate",risultatoInit:"The canvas awaits 👆",btnScarica:"⬇ Download the .txt artwork",btnSalva:"💾 Save to export folder",btnScaricaFb:"⬇ Download .txt (if the browser blocks folders)",btnScegli:"📁 Choose / change export folder",cartellaInit:"Folder: not chosen yet — you will be asked when saving.",atto3p:"Place the file here:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>then restart ComfyUI and let it bloom.",exportHintDefault:"Place the file here:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>then restart ComfyUI and let it bloom.",exportHintCfg:"Folder suggested by setup:<br><b>{d}</b><br>Pick it with 📁 or save and move the .txt there.",smallHave:"Already have an artwork?",detailsSum:"Many artworks to create?",detailsP:"One at a time, like paintings: finish, download, change the name in Act I and start over. Art is never in a hurry.",piede:"painted with <b>Ollama</b> · exhibited with <b>ComfyUI</b> · signed <b>Atelier Wildcard</b>",rowPh:"e.g. red rose",modelloLoading:"loading models...",nomeEx:"flowers",temaEx:"photorealistic flowers",exRows:["red rose","yellow tulip","white orchid","sunflower"],confirmCancella:"Destroy the whole canvas?",telaBianca:"Blank canvas. Start dreaming again.",provaVuota:"⚠️ The canvas is empty, write at least one verse",scaricaVuota:"The canvas is empty!",stInit:"The oracle awakens...",stNoModel:"⚠️ The oracle is silent: no model.",stNoModelOpt:"no model",stConnected:"✅ Oracle connected ({n} spirits).",stNoCors:"⚠️ I cannot hear the oracle. Start with <b>OLLAMA_ORIGINS=*</b>. You can paint by hand.",stStopped:"⏹ Vision interrupted.",stThinking:"The oracle dreams about: ",stEmpty:"⚠️ The oracle dreamed of emptiness, try again.",stOk:"✅ {n} visions received! Prune them with × if you like.",stUserStop:"⏹ Dream interrupted by you.",stGenErr:"❌ Error: ",stGenErrHint:". Restart with: <b>OLLAMA_ORIGINS=* ollama serve</b>",stUnloadNone:"⚠️ No spirit to free.",stUnloading:"🧠 Freeing {m} from memory... Ollama stays on.",stUnloaded:"✅ Mind freed. Ollama still watches ✅",stUnloadErr:"❌ Cannot free: ",stUiOff:"🔌 Oracle disconnected. Ollama stays on. Paint by hand.",stWake:"The oracle reawakens...",alertNoModel:"No spirit selected",alertOff:"Oracle disconnected. Press Reconnect.",folderSet:"📁 Folder: {n} — saves will go here (subfolders auto-created).",folderCancel:"Selection cancelled.",folderNoApi:"⚠️ Your browser does not support folder picking: use Download .txt and move the file by hand.",savedOk:"✅ Saved: {n}.txt in folder {c}",operaConsegnata:"✅ Artwork delivered: {n}.txt",saveErr:"❌ Cannot save there: {e} — falling back to classic download."},
+es:{docTitle:"Atelier Wildcard — Arte generativo para ComfyUI",fascia:"ATELIER DEL PROMPT — WILDCARD — COMFYUI × IMPACT PACK — OLLAMA — ARTE GENERATIVO — ",occhiello:"Opus · N.º 1 — Arte en estado puro",titolo:"Fábrica<br>de Maravillas",sottotitolo:"Escribe un <b>título</b>, la IA sueña la lista, ComfyUI la pone en escena.",cornice:"tres actos · sin complicaciones · solo poesía + archivos .txt",atto1tag:"Acto I — El Nombre",atto1h:"Bautiza la obra",atto1p:"Ejemplo: escribe <i>flores</i>, en ComfyUI evocarás <i>__flores__</i>",usoLabel:"en el lienzo escribirás:",atto2tag:"Acto II — La Materia",atto2h:"Del título a la lista",atto2p:"Escribe el <b>título</b>, pulsa generar y la IA llena el lienzo. O escribe a mano, como un pintor.",aiTitle:"✨ Oráculo <em>Ollama</em>",temaLabel:"Título / tema de la obra:",quante:["10 visiones","15 visiones","25 visiones","40 visiones"],temaPh:"p. ej. monstruos de fantasía, fondos cyberpunk...",btnAI:"✨ Generar visiones",btnDreaming:"⏳ El oráculo sueña...",btnStop:"⏹ Detener",btnScaricaMod:"🧠 Liberar la mente (VRAM)",btnScollega:"🔌 Desconectar oráculo",btnRicollega:"↩ Reconectar oráculo",addRow:"+ Un verso más",btnEsempio:"↩ Ejemplo",btnCancella:"🗑 Destruir todo",atto3tag:"Acto III — La Exposición",atto3h:"Prueba y entrega",btnProva:"🎲 Extraer un destino",risultatoInit:"El lienzo espera 👆",btnScarica:"⬇ Descargar la obra .txt",btnSalva:"💾 Guardar en la carpeta de exportación",btnScaricaFb:"⬇ Descargar .txt (si el navegador bloquea carpetas)",btnScegli:"📁 Elegir / cambiar carpeta de exportación",cartellaInit:"Carpeta: aún no elegida — se te pedirá al guardar.",atto3p:"Coloca el archivo aquí:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>luego reinicia ComfyUI y deja florecer.",exportHintDefault:"Coloca el archivo aquí:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>luego reinicia ComfyUI y deja florecer.",exportHintCfg:"Carpeta sugerida por el setup:<br><b>{d}</b><br>Elígela con 📁 o guarda y mueve el .txt allí.",smallHave:"¿Ya tienes una obra?",detailsSum:"¿Muchas obras por crear?",detailsP:"Una a la vez, como los cuadros: completa, descarga, cambia el nombre en el Acto I y empieza de nuevo. El arte no tiene prisa.",piede:"pintado con <b>Ollama</b> · expuesto con <b>ComfyUI</b> · firmado <b>Atelier Wildcard</b>",rowPh:"p. ej. rosa roja",modelloLoading:"cargando modelos...",nomeEx:"flores",temaEx:"flores fotorrealistas",exRows:["rosa roja","tulipán amarillo","orquídea blanca","girasol"],confirmCancella:"¿Destruir todo el lienzo?",telaBianca:"Lienzo en blanco. Vuelve a soñar.",provaVuota:"⚠️ El lienzo está vacío, escribe al menos un verso",scaricaVuota:"¡El lienzo está vacío!",stInit:"El oráculo despierta...",stNoModel:"⚠️ El oráculo calla: ningún modelo.",stNoModelOpt:"ningún modelo",stConnected:"✅ Oráculo conectado ({n} espíritus).",stNoCors:"⚠️ No oigo al oráculo. Inicia con <b>OLLAMA_ORIGINS=*</b>. Puedes pintar a mano.",stStopped:"⏹ Visión interrumpida.",stThinking:"El oráculo sueña con: ",stEmpty:"⚠️ El oráculo soñó el vacío, inténtalo de nuevo.",stOk:"✅ ¡{n} visiones recibidas! Pódalas con × si quieres.",stUserStop:"⏹ Sueño interrumpido por ti.",stGenErr:"❌ Error: ",stGenErrHint:". Reinicia con: <b>OLLAMA_ORIGINS=* ollama serve</b>",stUnloadNone:"⚠️ Ningún espíritu que liberar.",stUnloading:"🧠 Libero {m} de la mente... Ollama sigue encendido.",stUnloaded:"✅ Mente liberada. Ollama aún vigila ✅",stUnloadErr:"❌ No puedo liberar: ",stUiOff:"🔌 Oráculo desconectado. Ollama sigue encendido. Pinta a mano.",stWake:"El oráculo despierta de nuevo...",alertNoModel:"Ningún espíritu seleccionado",alertOff:"Oráculo desconectado. Pulsa Reconectar.",folderSet:"📁 Carpeta: {n} — los guardados irán aquí (subcarpetas automáticas).",folderCancel:"Selección cancelada.",folderNoApi:"⚠️ Tu navegador no permite elegir carpeta: usa Descargar .txt y mueve el archivo a mano.",savedOk:"✅ Guardado: {n}.txt en la carpeta {c}",operaConsegnata:"✅ Obra entregada: {n}.txt",saveErr:"❌ No puedo guardar ahí: {e} — uso la descarga clásica."},
+zh:{docTitle:"Atelier Wildcard — ComfyUI 生成艺术",fascia:"提示词工坊 — WILDCARD — COMFYUI × IMPACT PACK — OLLAMA — 生成艺术 — ",occhiello:"作品 · 第 1 号 — 纯粹的艺术",titolo:"奇迹<br>工厂",sottotitolo:"写下<b>标题</b>，AI 梦见列表，ComfyUI 将其搬上舞台。",cornice:"三幕 · 毫不复杂 · 只有诗意 + .txt 文件",atto1tag:"第一幕 — 命名",atto1h:"为作品命名",atto1p:"例如：输入 <i>花卉</i>，在 ComfyUI 中你将唤起 <i>__花卉__</i>",usoLabel:"你将在画布上写下：",atto2tag:"第二幕 — 素材",atto2h:"从标题到列表",atto2p:"写下<b>标题</b>，点击生成，AI 就会填满画布。也可以像画家一样手写。",aiTitle:"✨ <em>Ollama</em> 神谕",temaLabel:"作品标题 / 主题：",quante:["10 个灵感","15 个灵感","25 个灵感","40 个灵感"],temaPh:"例如：奇幻怪物、赛博朋克背景...",btnAI:"✨ 生成灵感",btnDreaming:"⏳ 神谕正在做梦...",btnStop:"⏹ 停止",btnScaricaMod:"🧠 释放显存 (VRAM)",btnScollega:"🔌 断开神谕",btnRicollega:"↩ 重新连接神谕",addRow:"+ 再添一行",btnEsempio:"↩ 示例",btnCancella:"🗑 全部销毁",atto3tag:"第三幕 — 展出",atto3h:"品味并交付",btnProva:"🎲 抽取命运",risultatoInit:"画布等待中 👆",btnScarica:"⬇ 下载 .txt 作品",btnSalva:"💾 保存到导出文件夹",btnScaricaFb:"⬇ 下载 .txt（如果浏览器不支持文件夹）",btnScegli:"📁 选择 / 更换导出文件夹",cartellaInit:"文件夹：尚未选择 — 保存时会询问。",atto3p:"把文件放在这里：<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>然后重启 ComfyUI，静待花开。",exportHintDefault:"把文件放在这里：<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>然后重启 ComfyUI，静待花开。",exportHintCfg:"安装程序建议的文件夹：<br><b>{d}</b><br>用 📁 选择它，或保存后把 .txt 移到那里。",smallHave:"已有作品？",detailsSum:"有很多作品要创作？",detailsP:"一次一幅，如绘画一般：完成、下载、在第一幕改名、重新开始。艺术从不匆忙。",piede:"用 <b>Ollama</b> 绘制 · 在 <b>ComfyUI</b> 展出 · 落款 <b>Atelier Wildcard</b>",rowPh:"例如：红玫瑰",modelloLoading:"正在加载模型...",nomeEx:"花卉",temaEx:"照片级写实花卉",exRows:["红玫瑰","黄郁金香","白兰花","向日葵"],confirmCancella:"要销毁整块画布吗？",telaBianca:"空白画布。重新开始梦想吧。",provaVuota:"⚠️ 画布是空的，请至少写一行",scaricaVuota:"画布是空的！",stInit:"神谕正在苏醒...",stNoModel:"⚠️ 神谕沉默：没有模型。",stNoModelOpt:"没有模型",stConnected:"✅ 神谕已连接（{n} 个灵魂）。",stNoCors:"⚠️ 听不到神谕。请用 <b>OLLAMA_ORIGINS=*</b> 启动。你也可以手写。",stStopped:"⏹ 灵感已中断。",stThinking:"神谕正在梦见：",stEmpty:"⚠️ 神谕梦见了虚空，请重试。",stOk:"✅ 收到 {n} 个灵感！可以用 × 修剪。",stUserStop:"⏹ 你中断了梦境。",stGenErr:"❌ 出错：",stGenErrHint:"。请用以下命令重启：<b>OLLAMA_ORIGINS=* ollama serve</b>",stUnloadNone:"⚠️ 没有可释放的灵魂。",stUnloading:"🧠 正在释放 {m}...Ollama 保持运行。",stUnloaded:"✅ 显存已释放。Ollama 仍在守护 ✅",stUnloadErr:"❌ 无法释放：",stUiOff:"🔌 神谕已断开。Ollama 保持运行。请手写。",stWake:"神谕正在再次苏醒...",alertNoModel:"未选择模型",alertOff:"神谕已断开。请点击重新连接。",folderSet:"📁 文件夹：{n} — 保存将存到这里（自动创建子文件夹）。",folderCancel:"已取消选择。",folderNoApi:"⚠️ 你的浏览器不支持选择文件夹：请用下载 .txt 并手动移动。",savedOk:"✅ 已保存：文件夹 {c} 中的 {n}.txt",operaConsegnata:"✅ 作品已交付：{n}.txt",saveErr:"❌ 无法保存在那里：{e} — 改用经典下载。"},
+hi:{docTitle:"Atelier Wildcard — ComfyUI जनरेटिव कला",fascia:"प्रॉम्प्ट कर्मशाला — WILDCARD — COMFYUI × IMPACT PACK — OLLAMA — जनरेटिव कला — ",occhiello:"रचना · सं. 1 — शुद्ध कला",titolo:"अजूबों का<br>कारख़ाना",sottotitolo:"<b>शीर्षक</b> लिखो, AI सूची का सपना देखता है, ComfyUI उसे मंच पर लाता है।",cornice:"तीन अंक · कोई झंझट नहीं · सिर्फ़ कविता + .txt फ़ाइलें",atto1tag:"अंक I — नाम",atto1h:"रचना का नामकरण करो",atto1p:"उदाहरण: <i>फूल</i> लिखो, ComfyUI में तुम <i>__फूल__</i> पुकारोगे",usoLabel:"कैनवास पर तुम लिखोगे:",atto2tag:"अंक II — सामग्री",atto2h:"शीर्षक से सूची तक",atto2p:"<b>शीर्षक</b> लिखो, जनरेट दबाओ और AI कैनवास भर देता है। या चित्रकार की तरह हाथ से लिखो।",aiTitle:"✨ <em>Ollama</em> देववाणी",temaLabel:"रचना का शीर्षक / विषय:",quante:["10 दृष्टियाँ","15 दृष्टियाँ","25 दृष्टियाँ","40 दृष्टियाँ"],temaPh:"जैसे: फैंटेसी राक्षस, साइबरपंक पृष्ठभूमि...",btnAI:"✨ दृष्टियाँ बनाओ",btnDreaming:"⏳ देववाणी सपना देख रही...",btnStop:"⏹ रोको",btnScaricaMod:"🧠 मन मुक्त करो (VRAM)",btnScollega:"🔌 देववाणी काटो",btnRicollega:"↩ देववाणी जोड़ो",addRow:"+ एक पंक्ति और",btnEsempio:"↩ उदाहरण",btnCancella:"🗑 सब नष्ट करो",atto3tag:"अंक III — प्रदर्शनी",atto3h:"चखो और सौंपो",btnProva:"🎲 भाग्य निकालो",risultatoInit:"कैनवास प्रतीक्षा में 👆",btnScarica:"⬇ .txt रचना डाउनलोड करो",btnSalva:"💾 निर्यात फ़ोल्डर में सहेजो",btnScaricaFb:"⬇ .txt डाउनलोड करो (यदि ब्राउज़र फ़ोल्डर रोके)",btnScegli:"📁 निर्यात फ़ोल्डर चुनो / बदलो",cartellaInit:"फ़ोल्डर: अभी नहीं चुना — सहेजते समय पूछा जाएगा।",atto3p:"फ़ाइल यहाँ रखो:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>फिर ComfyUI पुनः शुरू करो और खिलने दो।",exportHintDefault:"फ़ाइल यहाँ रखो:<br><b>ComfyUI → custom_nodes → ComfyUI-Impact-Pack → custom_wildcards</b><br>फिर ComfyUI पुनः शुरू करो और खिलने दो।",exportHintCfg:"सेटअप द्वारा सुझाया फ़ोल्डर:<br><b>{d}</b><br>📁 से चुनो या सहेजकर .txt वहाँ ले जाओ।",smallHave:"पहले से कोई रचना है?",detailsSum:"बहुत-सी रचनाएँ बनानी हैं?",detailsP:"एक बार में एक, चित्रों की तरह: पूरी करो, डाउनलोड करो, अंक I में नाम बदलो और फिर शुरू करो। कला को जल्दी नहीं होती।",piede:"<b>Ollama</b> से चित्रित · <b>ComfyUI</b> में प्रदर्शित · <b>Atelier Wildcard</b> के हस्ताक्षर सहित",rowPh:"जैसे: लाल गुलाब",modelloLoading:"मॉडल लोड हो रहे हैं...",nomeEx:"फूल",temaEx:"फोटोरियलिस्टिक फूल",exRows:["लाल गुलाब","पीला ट्यूलिप","सफ़ेद ऑर्किड","सूरजमुखी"],confirmCancella:"पूरा कैनवास नष्ट करें?",telaBianca:"कोरा कैनवास। फिर से सपने देखो।",provaVuota:"⚠️ कैनवास खाली है, कम से कम एक पंक्ति लिखो",scaricaVuota:"कैनवास खाली है!",stInit:"देववाणी जाग रही है...",stNoModel:"⚠️ देववाणी मौन है: कोई मॉडल नहीं।",stNoModelOpt:"कोई मॉडल नहीं",stConnected:"✅ देववाणी जुड़ी ({n} आत्माएँ)।",stNoCors:"⚠️ देववाणी सुनाई नहीं दे रही। <b>OLLAMA_ORIGINS=*</b> से शुरू करो। हाथ से चित्र बना सकते हो।",stStopped:"⏹ दृष्टि रोक दी।",stThinking:"देववाणी इस विषय का सपना देख रही है: ",stEmpty:"⚠️ देववाणी ने शून्य का सपना देखा, फिर कोशिश करो।",stOk:"✅ {n} दृष्टियाँ मिलीं! × से छाँट सकते हो।",stUserStop:"⏹ तुमने सपना रोक दिया।",stGenErr:"❌ त्रुटि: ",stGenErrHint:"। इससे पुनः शुरू करो: <b>OLLAMA_ORIGINS=* ollama serve</b>",stUnloadNone:"⚠️ मुक्त करने को कोई आत्मा नहीं।",stUnloading:"🧠 {m} को मन से मुक्त कर रहा... Ollama चालू रहेगा।",stUnloaded:"✅ मन मुक्त। Ollama अब भी पहरा दे रहा ✅",stUnloadErr:"❌ मुक्त नहीं कर सका: ",stUiOff:"🔌 देववाणी कटी। Ollama चालू है। हाथ से बनाओ।",stWake:"देववाणी फिर जाग रही है...",alertNoModel:"कोई आत्मा नहीं चुनी",alertOff:"देववाणी कटी है। पुनः जोड़ो दबाओ।",folderSet:"📁 फ़ोल्डर: {n} — सहेजना यहीं होगा (सबफ़ोल्डर स्वतः बनेंगे)।",folderCancel:"चयन रद्द।",folderNoApi:"⚠️ तुम्हारा ब्राउज़र फ़ोल्डर चुनने नहीं देता: .txt डाउनलोड करो और हाथ से ले जाओ।",savedOk:"✅ सहेजा गया: {c} फ़ोल्डर में {n}.txt",operaConsegnata:"✅ रचना सौंपी गई: {n}.txt",saveErr:"❌ वहाँ नहीं सहेज सका: {e} — क्लासिक डाउनलोड इस्तेमाल कर रहा।"}};
+function T(k){const L=LANG[lang]||LANG.it;const v=(L&&L[k]!==undefined)?L[k]:LANG.it[k];return v===undefined?k:v;}
+function F(s,a,b){return String(s).split("{n}").join(a).split("{m}").join(a).split("{c}").join(b===undefined?"":b).split("{e}").join(a).split("{d}").join(a);}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function isAnyInit(el,key){const c=el.textContent;return ["it","en","es","zh","hi"].some(L=>LANG[L]&&LANG[L][key]===c);}
+function setLang(l){
+  lang=(["it","en","es","zh","hi"].indexOf(l)>=0)?l:"it";
+  try{localStorage.setItem("wildcard-lang",lang);}catch(e){}
+  document.documentElement.lang=(lang==="zh"?"zh-CN":lang);
+  document.title=T("docTitle");
+  document.querySelectorAll("[data-i18n]").forEach(e=>{e.textContent=T(e.getAttribute("data-i18n"));});
+  document.querySelectorAll("[data-i18n-html]").forEach(e=>{e.innerHTML=T(e.getAttribute("data-i18n-html"));});
+  document.querySelectorAll("[data-i18n-ph]").forEach(e=>{e.placeholder=T(e.getAttribute("data-i18n-ph"));});
+  document.querySelectorAll(".fasciaTxt").forEach(e=>{e.textContent=T("fascia");});
+  const q=T("quante"),qs=document.getElementById("quante");
+  if(q&&q.length&&qs){const v=qs.value;for(let i=0;i<qs.options.length&&i<q.length;i++)qs.options[i].text=q[i];qs.value=v;}
+  const ms=document.getElementById("modello");
+  if(ms&&ms.options.length<=1)ms.options[0].text=T("modelloLoading");
+  document.querySelectorAll("#langbar button").forEach(b=>{b.classList.toggle("on",b.getAttribute("data-lang")===lang);});
+  const ris=document.getElementById("risultato");
+  if(ris&&isAnyInit(ris,"risultatoInit"))ris.textContent=T("risultatoInit");
+  const cs=document.getElementById("cartellaStato");
+  if(cs&&isAnyInit(cs,"cartellaInit"))cs.textContent=T("cartellaInit");
+  const st=document.getElementById("statoAI");
+  if(st&&isAnyInit(st,"stInit"))st.textContent=T("stInit");
+  disegna();
+}
+carica(); disegna(); aggiorna(); setLang((function(){try{return localStorage.getItem("wildcard-lang")||"it";}catch(e){return "it";}})()); caricaModelli();
+// --- tela d'arte: polvere di stelle ---
+(function(){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches){return;}
+  const c=document.getElementById("tela"),x=c.getContext("2d");let W,H,P=[];
+  function rs(){W=c.width=innerWidth;H=c.height=innerHeight;}
+  rs();addEventListener("resize",rs);
+  const col=["#ff2fb3","#00f0ff","#f5c518","#7c5cff"];
+  for(let i=0;i<70;i++)P.push({x:Math.random()*2000,y:Math.random()*2000,r:1+Math.random()*3,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,c:col[i%4],a:.15+Math.random()*.5});
+  (function loop(){
+    x.clearRect(0,0,W,H);
+    P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      x.globalAlpha=p.a;x.fillStyle=p.c;x.beginPath();x.arc(p.x%W,p.y%H,p.r,0,7);x.fill();});
+    x.globalAlpha=1;requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+atelier-config.json
+/tmp/
+*.log
+.DS_Store

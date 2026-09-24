@@ -1,0 +1,5 @@
+{
+  "export_dir": "",
+  "model": "qwen3.5:9b",
+  "ollama_url": "http://localhost:11434"
+}
