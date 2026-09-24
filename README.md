@@ -43,7 +43,7 @@ Tutti gli script fanno le stesse magie, in ordine:
 ### 🐧 Linux
 
 ```bash
-git clone <tuo-repo> atelier-wildcard
+git clone https://github.com/sasxdj-cmyk/atelier-wildcard.git
 cd atelier-wildcard
 bash setup.sh
 # oppure diretto: bash setup-linux.sh
@@ -52,7 +52,7 @@ bash setup.sh
 ### 🍎 macOS
 
 ```bash
-git clone <tuo-repo> atelier-wildcard
+git clone https://github.com/sasxdj-cmyk/atelier-wildcard.git
 cd atelier-wildcard
 bash setup.sh
 # oppure diretto: bash setup-macos.sh
@@ -65,7 +65,7 @@ Serve [Homebrew](https://brew.sh) per l'auto-installazione di Ollama (altrimenti
 Doppio click su **`setup-windows.bat`**, oppure da PowerShell:
 
 ```powershell
-git clone <tuo-repo> atelier-wildcard
+git clone https://github.com/sasxdj-cmyk/atelier-wildcard.git
 cd atelier-wildcard
 powershell -ExecutionPolicy Bypass -File setup-windows.ps1
 ```
