@@ -81,6 +81,8 @@ select{font-family:Arial,sans-serif;font-size:13px}
 .riga:nth-child(even) input{border-left-color:var(--ciano)}
 .riga:nth-child(3n) input{border-left-color:var(--oro)}
 .riga button{width:48px;flex-shrink:0;background:transparent;color:#ff8080;border:1px solid #5c2b2b;border-radius:12px;font-size:20px;cursor:pointer;transition:.2s}
+.conta{font-family:Arial,sans-serif;font-size:11px;color:#8a8578;background:#0d0d14;border:1px solid #33302a;border-radius:12px;padding:0 8px;align-self:center;white-space:nowrap}
+.conta.lunga{color:#ff8080;border-color:#5c2b2b}
 .riga button:hover{background:#ff2f2f;color:white;transform:rotate(90deg)}
 .btn{width:100%;padding:15px;border-radius:14px;border:0;font-size:15px;font-weight:700;cursor:pointer;margin-top:10px;
   font-family:Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;transition:.25s}
@@ -205,10 +207,12 @@ function disegna(){
   righe.forEach((v,i)=>{
     const d=document.createElement("div"); d.className="riga";
     const inp=document.createElement("input"); inp.value=v; inp.placeholder=T("rowPh");
-    inp.oninput=e=>{righe[i]=e.target.value; salva();};
+    const badge=document.createElement("span"); badge.className="conta"; badge.title="parole";
+    const upd=()=>{const n=inp.value.trim()?inp.value.trim().split(/\s+/).length:0; badge.textContent=n; badge.classList.toggle("lunga",n>8);};
+    inp.oninput=e=>{righe[i]=e.target.value; salva(); upd();}; upd();
     const del=document.createElement("button"); del.textContent="×"; del.title="togli";
     del.onclick=()=>{righe.splice(i,1); if(righe.length===0) righe=[""]; disegna(); salva();};
-    d.appendChild(inp); d.appendChild(del); box.appendChild(d);
+    d.appendChild(inp); d.appendChild(badge); d.appendChild(del); box.appendChild(d);
   });
 }
 function aggiungiRiga(v){righe.push(v||""); disegna(); salva();
@@ -301,11 +305,11 @@ async function generaAI(){
   btn.disabled=true; btn.textContent=T("btnDreaming");
   document.getElementById("btnStop").style.display="block";
   stato.textContent=T("stThinking")+tema;
-  const prompt=`Generate ${quante} short Stable Diffusion prompt options about "${tema}". Rules: ONE option per line, in English, max 8 words per line, no numbering, no dashes at start, no quotes, no explanations, no empty lines. Output ONLY the list.`;
+  const prompt=`Generate ${quante} Stable Diffusion wildcard options about "${tema}". Rules: ONE option per line, in English, MAX 5 WORDS per line, simple keywords, no full sentences, no commas, no trailing period, no numbering, no dashes at start, no quotes, no explanations, no empty lines. Output ONLY the list.`;
   try{
     const r=await fetch(OLLAMA_URL+"/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:modello,prompt:prompt,stream:false}),signal:aiController.signal});
     const d=await r.json();
-    let linee=String(d.response||"").split(/\r?\n/).map(s=>s.trim().replace(/^[\d]+[\).\:\-\s]+/,"").replace(/^[-*•\s]+/,"").replace(/^["']|["']$/g,"").trim()).filter(s=>s && s.length<120 && !s.toLowerCase().startsWith("here"));
+    let linee=String(d.response||"").split(/\r?\n/).map(s=>s.trim().replace(/^[\d]+[\).\:\-\s]+/,"").replace(/^[-*•\s]+/,"").replace(/^["']|["']$/g,"").replace(/\s+/g," ").replace(/[\s.,;:!?\-–—]+$/,"").trim()).filter(s=>s && s.length<120 && !s.toLowerCase().startsWith("here"));
     if(!linee.length){stato.textContent=T("stEmpty");}
     else{righe=linee.slice(0,parseInt(quante,10)); disegna(); salva(); stato.textContent=F(T("stOk"),righe.length);}
   }catch(e){

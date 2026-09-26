@@ -1,44 +1,44 @@
-# 🎭 Atelier Wildcard — arte generativa per ComfyUI Impact Pack
+# 🎭 Atelier Wildcard — Generative Art for ComfyUI Impact Pack
 
-**Un solo file HTML** per creare wildcard `__nome__` con l'aiuto di **Ollama** in locale,
-più **un solo script `setup.sh`** che prepara tutto: verifica il PC, installa Ollama se manca,
-scarica il modello e ti chiede **in quale cartella esportare** i `.txt`.
+**A single HTML file** to create `__name__` wildcards with the help of local **Ollama**,
+plus **a single `setup.sh` script** that prepares everything: checks your machine, installs Ollama if missing,
+pulls the model and asks you **where to export** the `.txt` files.
 
-> 🇬🇧 *Short English summary at the bottom.*
+> 🇮🇹 *Versione italiana: [README.it.md](README.it.md).*
 
 ---
 
-## ✨ Cosa fa
+## ✨ What it does
 
-- **Atto I — Il Nome:** scrivi `fiori` → userai `__fiori__` nei nodi `ImpactWildcardProcessor / ImpactWildcardEncode`.
-- **Atto II — La Materia:** scrivi un titolo (es. *fiori fotorealistici*), premi **✨ Genera visioni** e Ollama riempie la lista. Oppure scrivi a mano.
-- **Atto III — L'Esposizione:** estrai un destino a caso, poi **💾 Salva nella cartella di export** (scegli la cartella una volta sola) oppure scarica il `.txt`.
-- Extra: ⏹ STOP generazione, 🧠 libera VRAM **senza chiudere Ollama** (`keep_alive: 0`), 🔌 scollega/ricollega oracolo, 🗑 distruggi lista.
-- 🌍 **5 lingue**: 🇮🇹 italiano, 🇬🇧 inglese, 🇪🇸 spagnolo, 🇨🇳 cinese, 🇮🇳 hindi — selettore a bandierine in alto, scelta ricordata. Anche esempi e messaggi seguono la lingua.
+- **Act I — The Name:** type `flowers` → you will use `__flowers__` in `ImpactWildcardProcessor / ImpactWildcardEncode` nodes.
+- **Act II — The Matter:** type a title (e.g. *photorealistic flowers*), press **✨ Generate visions** and Ollama fills the list. Or write by hand.
+- **Act III — The Exhibition:** draw a random fate, then **💾 Save to the export folder** (pick the folder once) or download the `.txt`.
+- Extras: ⏹ Stop generation, 🧠 free VRAM **without closing Ollama** (`keep_alive: 0`), 🔌 disconnect/reconnect oracle, 🗑 destroy list, word counter per line (red if >8 words).
+- 🌍 **5 languages**: 🇮🇹 Italian, 🇬🇧 English, 🇪🇸 Spanish, 🇨🇳 Chinese, 🇮🇳 Hindi — flag selector on top, choice remembered. Examples and messages follow the language.
 
-Formato file 100% compatibile Impact Pack: **una riga = una scelta**, `#` = commento, `__cat/sub__` per sottocartelle.
+File format 100% Impact Pack compatible: **one line = one choice**, `#` = comment, `__cat/sub__` for subfolders.
 
-## 🖥️ Requisiti del PC
+## 🖥️ Requirements
 
-| Serve | Dettagli |
+| Need | Details |
 |---|---|
-| OS | Linux (testato), macOS o WSL2 |
-| RAM | **8 GB+** consigliati (`qwen3.5:9b` pesa ~6.6 GB) |
-| Disco | ~8 GB liberi per il modello |
-| ComfyUI | già installato e funzionante |
-| Impact Pack | `custom_nodes/comfyui-impact-pack` (o `ComfyUI-Impact-Pack`) con cartella `custom_wildcards/` |
-| Browser | Chrome / Edge (per salvataggio diretto in cartella; Firefox = solo download) |
-| GPU | facoltativa (NVIDIA = più veloce, CPU = funziona lo stesso) |
+| OS | Linux (tested), macOS or WSL2 |
+| RAM | **8 GB+** recommended (`qwen3.5:9b` is ~6.6 GB) |
+| Disk | ~8 GB free for the model |
+| ComfyUI | already installed and working |
+| Impact Pack | `custom_nodes/comfyui-impact-pack` (or `ComfyUI-Impact-Pack`) with `custom_wildcards/` folder |
+| Browser | Chrome / Edge (for direct folder save; Firefox = download only) |
+| GPU | optional (NVIDIA = faster, CPU = works anyway) |
 
-## 🚀 Installazione (scegli il tuo sistema)
+## 🚀 Installation (pick your system)
 
-Tutti gli script fanno le stesse magie, in ordine:
-1. Controllano il PC (RAM, disco, GPU).
-2. Cercano `custom_wildcards/` di Impact Pack nei percorsi tipici del sistema.
-3. Verificano `ollama`; **se manca lo installano**.
-4. Avviano il server con `OLLAMA_ORIGINS=*` se spento (serve al browser per il CORS).
-5. Scaricano `qwen3.5:9b` (modello di partenza).
-6. **Ti chiedono UNA cosa sola: la cartella di export** e scrivono `atelier-config.json`, mostrato dalla pagina come percorso consigliato.
+All scripts do the same magic, in order:
+1. Check the machine (RAM, disk, GPU).
+2. Look for Impact Pack `custom_wildcards/` in typical system paths.
+3. Check `ollama`; **install it if missing**.
+4. Start the server with `OLLAMA_ORIGINS=*` if down (needed by the browser for CORS).
+5. Pull `qwen3.5:9b` (starter model).
+6. **Ask you ONE thing only: the export folder** and write `atelier-config.json`, shown by the page as the suggested path.
 
 ### 🐧 Linux
 
@@ -46,7 +46,7 @@ Tutti gli script fanno le stesse magie, in ordine:
 git clone https://github.com/sasxdj-cmyk/atelier-wildcard.git
 cd atelier-wildcard
 bash setup.sh
-# oppure diretto: bash setup-linux.sh
+# or directly: bash setup-linux.sh
 ```
 
 ### 🍎 macOS
@@ -55,14 +55,14 @@ bash setup.sh
 git clone https://github.com/sasxdj-cmyk/atelier-wildcard.git
 cd atelier-wildcard
 bash setup.sh
-# oppure diretto: bash setup-macos.sh
+# or directly: bash setup-macos.sh
 ```
 
-Serve [Homebrew](https://brew.sh) per l'auto-installazione di Ollama (altrimenti scarica [Ollama.app](https://ollama.com/download)). Su Apple Silicon Ollama usa Metal: va forte anche senza NVIDIA.
+[Homebrew](https://brew.sh) is required for Ollama auto-install (otherwise get [Ollama.app](https://ollama.com/download)). On Apple Silicon Ollama uses Metal: fast even without NVIDIA.
 
 ### 🪟 Windows
 
-Doppio click su **`setup-windows.bat`**, oppure da PowerShell:
+Double-click **`setup-windows.bat`**, or from PowerShell:
 
 ```powershell
 git clone https://github.com/sasxdj-cmyk/atelier-wildcard.git
@@ -70,82 +70,80 @@ cd atelier-wildcard
 powershell -ExecutionPolicy Bypass -File setup-windows.ps1
 ```
 
-Ollama viene installato via `winget` (se presente) oppure scaricando l'installer ufficiale. Il server viene avviato in background e `OLLAMA_ORIGINS=*` viene memorizzato con `setx`.
+Ollama is installed via `winget` (if available) or via the official installer. The server is started in background and `OLLAMA_ORIGINS=*` is stored with `setx`.
 
-Opzioni (tutti i sistemi):
+Options (all systems):
 
 ```bash
-bash setup.sh --model qwen3:14b --export /mio/percorso/custom_wildcards --yes
+bash setup.sh --model qwen3:14b --export /my/path/custom_wildcards --yes
 ```
 
 ```powershell
 .\setup-windows.ps1 -Model "qwen3:14b" -ExportDir "D:\ComfyUI\custom_nodes\comfyui-impact-pack\custom_wildcards" -Yes
 ```
 
-## 🎨 Uso
+## 🎨 Usage
 
-1. Apri `atelier-wildcard.html` con Chrome/Edge (doppio click, nessun server richiesto).
-2. Premi **📁 Scegli cartella** e indica quella detta al setup (es. `.../comfyui-impact-pack/custom_wildcards`).
-3. Atto I: nome → Atto II: titolo → **✨ Genera visioni** → togli le brutte con `×`.
-4. **💾 Salva nella cartella** (crea anche sottocartelle tipo `obj/person.txt` da solo).
-5. In ComfyUI: `__fiori__` / `__obj/person__` nei nodi Impact Wildcard → Queue → meraviglia.
+1. Open `atelier-wildcard.html` with Chrome/Edge (double-click, no server needed).
+2. Press **📁 Choose folder** and point to the one given at setup (e.g. `.../comfyui-impact-pack/custom_wildcards`).
+3. Act I: name → Act II: title → **✨ Generate visions** → remove bad ones with `×`.
+4. **💾 Save to folder** (also creates subfolders like `obj/person.txt` automatically).
+5. In ComfyUI: `__flowers__` / `__obj/person__` in Impact Wildcard nodes → Queue → magic.
 
-## 🧠 Modelli
+## 🧠 Models
 
-Default: **`qwen3.5:9b`** — buon equilibrio qualità/VRAM per liste di prompt in inglese.
-Alternative leggere: `qwen3:4b`, `granite4.2:8b`. Alternative forti: `qwen3:14b`, `gpt-oss:20b`.
-Cambia dal menu nella pagina o rilancia `bash setup.sh --model nome:tag`.
+Default: **`qwen3.5:9b`** — good quality/VRAM balance for English prompt lists.
+Light alternatives: `qwen3:4b`, `granite4.2:8b`. Strong alternatives: `qwen3:14b`, `gpt-oss:20b`.
+Switch from the page menu or re-run `bash setup.sh --model name:tag`.
 
-Liberare VRAM senza chiudere Ollama: bottone **🧠 Libera la mente** (= `POST /api/generate {keep_alive: 0}`). Verifica con `curl localhost:11434/api/ps` → `[]` ma server vivo.
+Free VRAM without closing Ollama: **🧠 Free the mind** button (= `POST /api/generate {keep_alive: 0}`). Check with `curl localhost:11434/api/ps` → `[]` but server alive.
+
+Generator prompt: asks Ollama for max 5 words per line (simple keywords, no sentences), each line shows a word count badge (red if >8).
 
 ## 🔒 Privacy
 
-Tutto gira in locale: pagina HTML offline senza telemetria, Ollama su `localhost`, salvataggi solo dove scegli tu. Zero account, zero cloud.
+Everything runs locally: offline HTML page with no telemetry, Ollama on `localhost`, saves only where you choose. Zero accounts, zero cloud.
 
-## 🧪 Stato dei test
+## 🧪 Test status
 
-- ✅ Linux: setup provato davvero (Ollama 0.32.14, modello presente, config scritta e validata).
-- ⚠️ Windows/macOS: script verificati solo a livello sintattico — se li provi su hardware reale, apri pure una issue/PR.
+- ✅ Linux: setup really tested (Ollama 0.32.14, model present, config written and validated).
+- ⚠️ Windows/macOS: scripts syntax-checked only — if you try them on real hardware, feel free to open an issue/PR.
 
-## 🔧 Problemi comuni
+## 🔧 Troubleshooting
 
-- **Browser non parla con Ollama / CORS:** riavvia con `OLLAMA_ORIGINS=* ollama serve` (lo script lo fa già).
-- **Firefox non salva in cartella:** normale, usa **⬇ Scarica .txt** e sposta a mano.
-- **`custom_wildcards` non trovata:** metti i `.txt` in `ComfyUI/custom_nodes/ComfyUI-Impact-Pack/custom_wildcards/` e riavvia ComfyUI.
-- **Poca RAM:** usa un modello più piccolo o chiudi altro; il bottone 🧠 libera la VRAM tra una generazione e l'altra.
+- **Browser can't talk to Ollama / CORS:** restart with `OLLAMA_ORIGINS=* ollama serve` (the script already does it).
+- **Firefox doesn't save to folder:** expected, use **⬇ Download .txt** and move manually.
+- **`custom_wildcards` not found:** put `.txt` files in `ComfyUI/custom_nodes/ComfyUI-Impact-Pack/custom_wildcards/` and restart ComfyUI.
+- **Low RAM:** use a smaller model or close other apps; the 🧠 button frees VRAM between generations.
+- **Long lines?** Impact reads lines of any length (one line = one choice, no truncation): brevity matters for CLIP/prompts, not for the parser. The generator asks Ollama for max 5 words and each line shows the count (red if >8).
 
-## 📁 Struttura
+## 📁 Structure
 
 ```
 atelier-wildcard/
-├── atelier-wildcard.html       # l'opera (singolo file, offline, zero dipendenze — uguale su tutti i sistemi)
-├── setup.sh                    # dispatcher: sceglie lo script giusto (Linux/Mac)
-├── setup-linux.sh              # il mago per Linux
-├── setup-macos.sh              # il mago per macOS
-├── setup-windows.ps1           # il mago per Windows (PowerShell)
-├── setup-windows.bat           # doppio click per Windows
-├── atelier-config.json         # generato dal setup (ignorato da git)
-├── atelier-config.example.json # esempio
-├── README.md
+├── atelier-wildcard.html       # the artwork (single file, offline, zero deps — same on all systems)
+├── setup.sh                    # dispatcher: picks the right script (Linux/Mac)
+├── setup-linux.sh              # the wizard for Linux
+├── setup-macos.sh              # the wizard for macOS
+├── setup-windows.ps1           # the wizard for Windows (PowerShell)
+├── setup-windows.bat           # double-click for Windows
+├── atelier-config.json         # generated by setup (git-ignored)
+├── atelier-config.example.json # example
+├── README.md                   # this file (English)
+├── README.it.md                # Italian version
 └── LICENSE (MIT)
 ```
 
-## 📤 Pubblicare su GitHub
+## 📤 Publish to GitHub
 
 ```bash
 cd atelier-wildcard
-git init && git add . && git commit -m "Atelier Wildcard: arte generativa per Impact Pack + Ollama"
+git init && git add . && git commit -m "Atelier Wildcard: generative art for Impact Pack + Ollama"
 gh repo create atelier-wildcard --public --source=. --push
 ```
 
-`atelier-config.json` è nel `.gitignore`: ogni utente genera il suo col setup.
+`atelier-config.json` is in `.gitignore`: each user generates their own via setup.
 
 ---
 
-### 🇬🇧 English (short)
-
-Single-file HTML atelier to author ComfyUI Impact Pack wildcards with local Ollama.
-`setup.sh` (Linux/macOS dispatcher → `setup-linux.sh` / `setup-macos.sh`) and `setup-windows.ps1` (+ double-click `.bat`) check the machine, install Ollama if missing, pull `qwen3.5:9b`,
-asks for the export folder (your `custom_wildcards/`), and writes `atelier-config.json`
-consumed by the page. Open the HTML in Chrome/Edge, pick the folder once, type a title,
-generate, save straight into `custom_wildcards/`, use `__name__` in Impact nodes.
+*Painted with **Ollama** · exhibited with **ComfyUI** · signed **Atelier Wildcard*** 🎭
